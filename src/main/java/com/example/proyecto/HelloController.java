@@ -1,14 +1,16 @@
 package com.example.proyecto;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ListView;
-import javafx.scene.control.RadioButton;
+import javafx.fxml.Initializable;
+import javafx.scene.control.*;
 
-public class HelloController {
+import java.net.URL;
+import java.util.Arrays;
+import java.util.ResourceBundle;
+
+public class HelloController implements Initializable {
     @FXML
-    private ListView<String> lvTasksMg;
+    private ListView<String> lvTaskMg;
 
     @FXML
     private RadioButton rbAll;
@@ -18,6 +20,8 @@ public class HelloController {
 
     @FXML
     private RadioButton rbUnassigned;
+
+    private ToggleGroup toggleGroup;
 
     @FXML
     private Button btnCreateT;
@@ -60,5 +64,31 @@ public class HelloController {
 
     @FXML
     private Button btnConfirmA;
+
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle){
+        toggleGroup = new ToggleGroup();
+
+        rbAll.setToggleGroup(toggleGroup);
+        rbAssigned.setToggleGroup(toggleGroup);
+        rbUnassigned.setToggleGroup(toggleGroup);
+    }
+
+    @FXML
+    private void onRadioButtonSelected(){
+        RadioButton selectedRadioButton = (RadioButton) toggleGroup.getSelectedToggle();
+
+        if (selectedRadioButton == rbAll) {
+            rbAssigned.setSelected(false);
+            rbUnassigned.setSelected(false);
+        } else if (selectedRadioButton == rbAssigned) {
+            rbAll.setSelected(false);
+            rbUnassigned.setSelected(false);
+        } else if (selectedRadioButton == rbUnassigned) {
+            rbAll.setSelected(false);
+            rbAssigned.setSelected(false);
+        }
+    }
 
 }
