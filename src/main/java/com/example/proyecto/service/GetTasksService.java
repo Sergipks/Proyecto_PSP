@@ -7,13 +7,23 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
 public class GetTasksService extends Service<GetTasksResponse> {
+    private String filter;
+
+    public GetTasksService(String filter){
+        this.filter = filter;
+    }
+
+    public GetTasksService(){
+        this.filter = "";
+    }
+
     @Override
     protected Task<GetTasksResponse> createTask() {
         return new Task<GetTasksResponse>() {
             @Override
             protected GetTasksResponse call() throws Exception {
                 /*String json = ServiceUtils.getResponse(
-                        ServiceUtils.SERVER + "/tasks", null, "GET");*/
+                        ServiceUtils.SERVER + "/tasks" + filter, null, "GET");*/
                 String json = "[\n" +
                         "  {\n" +
                         "    \"cod\": 1,\n" +

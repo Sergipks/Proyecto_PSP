@@ -10,6 +10,7 @@ public class Task {
     private Date fecFin;
     private int tiempo;
     private int prioridad;
+    private Worker trabajador;
 
     public Task(int cod, String categoria, String descripcion, Date fecIni,
                 Date fecFin, int tiempo, int prioridad) {
@@ -20,6 +21,19 @@ public class Task {
         this.fecFin = fecFin;
         this.tiempo = tiempo;
         this.prioridad = prioridad;
+        this.trabajador = null;
+    }
+
+    public Task(int cod, String categoria, String descripcion, Date fecIni,
+                Date fecFin, int tiempo, int prioridad, Worker trabajador) {
+        this.cod = cod;
+        this.categoria = categoria;
+        this.descripcion = descripcion;
+        this.fecIni = fecIni;
+        this.fecFin = fecFin;
+        this.tiempo = tiempo;
+        this.prioridad = prioridad;
+        this.trabajador = trabajador;
     }
 
     public int getCod() {
@@ -76,5 +90,13 @@ public class Task {
 
     public void setPrioridad(int prioridad) {
         this.prioridad = prioridad;
+    }
+
+    public Worker getTrabajador() {
+        return trabajador;
+    }
+
+    public void setTrabajador(Worker trabajador) {
+        this.trabajador = trabajador;
     }
 }
