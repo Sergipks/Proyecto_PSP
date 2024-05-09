@@ -16,24 +16,24 @@
          <content>
         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                <children>
-                  <ListView layoutX="47.0" layoutY="59.0" prefHeight="372.0" prefWidth="505.0" />
-                  <RadioButton layoutX="64.0" layoutY="37.0" mnemonicParsing="false" text="Show all" />
-                  <RadioButton layoutX="188.0" layoutY="37.0" mnemonicParsing="false" text="Show assigned" />
-                  <RadioButton layoutX="333.0" layoutY="38.0" mnemonicParsing="false" text="Show unassigned" />
-                  <Button layoutX="591.0" layoutY="145.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Create" />
-                  <Button layoutX="591.0" layoutY="215.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Update" />
-                  <Button layoutX="591.0" layoutY="285.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Delete" />
+                  <ListView fx:id="lvTaskMg" layoutX="47.0" layoutY="59.0" prefHeight="372.0" prefWidth="505.0" />
+                  <RadioButton fx:id="rbAll" layoutX="64.0" layoutY="37.0" mnemonicParsing="false" text="Show all" />
+                  <RadioButton fx:id="rbAssigned" layoutX="188.0" layoutY="37.0" mnemonicParsing="false" text="Show assigned" />
+                  <RadioButton fx:id="rbUnassigned" layoutX="333.0" layoutY="38.0" mnemonicParsing="false" text="Show unassigned" />
+                  <Button fx:id="btnCreateT" layoutX="591.0" layoutY="145.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Create" />
+                  <Button fx:id="btnUpdateT" layoutX="591.0" layoutY="215.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Update" />
+                  <Button fx:id="btnDeleteT" layoutX="591.0" layoutY="285.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Delete" />
                </children></AnchorPane>
          </content></Tab>
     <Tab text="Workers management">
          <content>
             <AnchorPane prefHeight="200.0" prefWidth="200.0">
                <children>
-                  <ListView layoutX="47.0" layoutY="59.0" prefHeight="372.0" prefWidth="505.0" />
-                  <Button layoutX="591.0" layoutY="145.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Create" />
-                  <Button layoutX="591.0" layoutY="215.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Update" />
-                  <Button layoutX="591.0" layoutY="285.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Delete" />
-                  <Button layoutX="591.0" layoutY="355.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Create payroll" />
+                  <ListView fx:id="lvWorkersMg" layoutX="47.0" layoutY="59.0" prefHeight="372.0" prefWidth="505.0" />
+                  <Button fx:id="btnCreateW" layoutX="591.0" layoutY="145.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Create" />
+                  <Button fx:id="btnUpdateW" layoutX="591.0" layoutY="215.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Update" />
+                  <Button fx:id="btnDeleteW" layoutX="591.0" layoutY="285.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Delete" />
+                  <Button fx:id="btnCreateP" layoutX="591.0" layoutY="355.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="134.0" text="Create payroll" />
                </children>
             </AnchorPane>
          </content>
@@ -42,10 +42,10 @@
         <content>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                <children>
-                  <ListView layoutX="24.0" layoutY="51.0" prefHeight="372.0" prefWidth="219.0" />
-                  <ListView layoutX="264.0" layoutY="51.0" prefHeight="372.0" prefWidth="219.0" />
-                  <ListView layoutX="504.0" layoutY="51.0" prefHeight="372.0" prefWidth="219.0" />
-                  <ChoiceBox layoutX="356.0" layoutY="20.0" prefHeight="26.0" prefWidth="123.0" />
+                  <ListView fx:id="lvTasksA" layoutX="24.0" layoutY="51.0" prefHeight="372.0" prefWidth="219.0" />
+                  <ListView fx:id="lvWorkersA" layoutX="264.0" layoutY="51.0" prefHeight="372.0" prefWidth="219.0" />
+                  <ListView fx:id="lvAssignments" layoutX="504.0" layoutY="51.0" prefHeight="372.0" prefWidth="219.0" />
+                  <ChoiceBox fx:id="cbJobs" layoutX="356.0" layoutY="20.0" prefHeight="26.0" prefWidth="123.0" />
                   <Label layoutX="268.0" layoutY="23.0" prefHeight="20.0" prefWidth="84.0" text="Filter by job:">
                      <font>
                         <Font size="16.0" />
@@ -61,8 +61,8 @@
                         <Font size="16.0" />
                      </font>
                   </Label>
-                  <Button layoutX="643.0" layoutY="430.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="80.0" text="Delete" />
-                  <Button layoutX="502.0" layoutY="430.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="136.0" text="Confirm Assignments" />
+                  <Button fx:id="btnDeleteA" layoutX="643.0" layoutY="430.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="80.0" text="Delete" />
+                  <Button fx:id="btnConfirmA" layoutX="502.0" layoutY="430.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="136.0" text="Confirm Assignments" />
                </children>
             </AnchorPane>
         </content>
