@@ -9,9 +9,8 @@ public class Worker {
     private String contrasenya;
     private String email;
 
-    public Worker(int id, String dni, String nombre, String apellidos,
+    public Worker(String dni, String nombre, String apellidos,
                   String especialidad, String contrasenya, String email) {
-        this.id = id;
         this.dni = dni;
         this.nombre = nombre;
         this.apellidos = apellidos;
@@ -74,5 +73,10 @@ public class Worker {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @Override
+    public String toString() {
+        return apellidos + ", " + nombre + " (" + especialidad + ")";
     }
 }
