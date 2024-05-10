@@ -7,6 +7,7 @@ import com.example.proyecto.service.GetWorkersService;
 import com.example.proyecto.service.PostTaskService;
 import com.example.proyecto.utils.MessageUtils;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
