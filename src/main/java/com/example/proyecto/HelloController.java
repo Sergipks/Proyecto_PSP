@@ -1,22 +1,23 @@
 package com.example.proyecto;
 
+import com.example.proyecto.model.Task;
 import com.example.proyecto.model.Worker;
-import com.example.proyecto.response.GetWorkersResponse;
+import com.example.proyecto.service.GetTasksService;
 import com.example.proyecto.service.GetWorkersService;
 import com.example.proyecto.utils.MessageUtils;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.util.Callback;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class HelloController implements Initializable {
     @FXML
-    private ListView<String> lvTaskMg;
+    private ListView<Task> lvTaskMg;
 
     @FXML
     private RadioButton rbAll;
@@ -71,8 +72,8 @@ public class HelloController implements Initializable {
     @FXML
     private Button btnConfirmA;
 
-
     private GetWorkersService getWorkersService;
+    private GetTasksService getTasksService;
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         // Seleccionar un radiobutton
@@ -92,15 +93,34 @@ public class HelloController implements Initializable {
                 lvWorkersMg.setItems(FXCollections.observableArrayList(getWorkersService.getValue().getWorkers()));
             }
             else{
-                MessageUtils.showError("Error getting tasks", getWorkersService.getValue().getErrorMessage());
+                MessageUtils.showError("Error getting workers", getWorkersService.getValue().getErrorMessage());
             }
         });
-        getWorkersService.setOnFailed(e -> {
+        getWorkersService.setOnFailed(e-> {
             MessageUtils.showError("Error", "Error connecting to server");
         });
 
         // Mostrar lista de tareas
+        getTasksService = new GetTasksService();
+        getTasksService.start();
 
+        getTasksService.setOnSucceeded(e-> {
+            if(!getTasksService.getValue().isError())
+            {
+                System.out.println(getWorkersService.getValue().getWorkers());
+                lvTaskMg.setItems(FXCollections.observableArrayList(getTasksService.getValue().getTasks()));
+            }
+            else{
+                MessageUtils.showError("Error getting tasks", getTasksService.getValue().getErrorMessage());
+            }
+        });
+        getTasksService.setOnFailed(e-> {
+            MessageUtils.showError("Error", "Error connecting to server");
+        });
+        // Configurar listeners para los radio buttons
+        rbAll.setOnAction(event -> updateTaskList());
+        rbAssigned.setOnAction(event -> updateTaskList());
+        rbUnassigned.setOnAction(event -> updateTaskList());
 
 
         /* Botones
@@ -116,6 +136,23 @@ public class HelloController implements Initializable {
 
          */
     }
+
+    private void updateTaskList() {
+        if (rbAll.isSelected()) {
+            getTasksService = new GetTasksService();
+        } else if (rbAssigned.isSelected()) {
+            // Mostrar tareas asignadas (con worker no nulo)
+            getTasksService = new GetTasksService("/assigned");
+        } else if (rbUnassigned.isSelected()) {
+            // Mostrar tareas no asignadas (con worker nulo)
+            getTasksService = new GetTasksService("/notassigned");
+        }
+
+        List<Task> tasks = getTasksService.getValue().getTasks();
+        // Actualizar la lista de tareas en la ListView
+        lvTaskMg.setItems(FXCollections.observableArrayList(tasks));
+    }
+
 
     @FXML
     private void onRadioButtonSelected(){
