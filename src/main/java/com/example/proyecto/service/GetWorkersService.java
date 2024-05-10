@@ -72,7 +72,8 @@ public class GetWorkersService extends Service<GetWorkersResponse> {
                         "]";
 
                 Gson gson = new Gson();
-                return gson.fromJson(json, GetWorkersResponse.class);
+                GetWorkersResponse response = gson.fromJson(json, GetWorkersResponse.class);
+                return response;
             }
         };
     }
