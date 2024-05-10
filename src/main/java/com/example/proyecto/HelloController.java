@@ -1,11 +1,17 @@
 package com.example.proyecto;
 
+import com.example.proyecto.model.Worker;
+import com.example.proyecto.response.GetWorkersResponse;
+import com.example.proyecto.service.GetWorkersService;
+import com.example.proyecto.utils.MessageUtils;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.util.Callback;
 
 import java.net.URL;
-import java.util.Arrays;
 import java.util.ResourceBundle;
 
 public class HelloController implements Initializable {
@@ -33,7 +39,7 @@ public class HelloController implements Initializable {
     private Button btnDeleteT;
 
     @FXML
-    private ListView<String> lvWorkersMg;
+    private ListView<Worker> lvWorkersMg;
 
     @FXML
     private Button btnCreateW;
@@ -51,7 +57,7 @@ public class HelloController implements Initializable {
     private ListView<String> lvTasksA;
 
     @FXML
-    private ListView<String> lvWorkersA;
+    private ListView<Worker> lvWorkersA;
 
     @FXML
     private ListView<String> lvAssignments;
@@ -66,13 +72,49 @@ public class HelloController implements Initializable {
     private Button btnConfirmA;
 
 
+    private GetWorkersService getWorkersService;
     @Override
-    public void initialize(URL url, ResourceBundle resourceBundle){
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        // Seleccionar un radiobutton
         toggleGroup = new ToggleGroup();
-
         rbAll.setToggleGroup(toggleGroup);
         rbAssigned.setToggleGroup(toggleGroup);
         rbUnassigned.setToggleGroup(toggleGroup);
+
+        // Mostrar lista de trabajadores
+        getWorkersService = new GetWorkersService();
+        getWorkersService.start();
+
+        getWorkersService.setOnSucceeded(e-> {
+            if(!getWorkersService.getValue().isError())
+            {
+                System.out.println(getWorkersService.getValue().getWorkers());
+                lvWorkersMg.setItems(FXCollections.observableArrayList(getWorkersService.getValue().getWorkers()));
+            }
+            else{
+                MessageUtils.showError("Error getting tasks", getWorkersService.getValue().getErrorMessage());
+            }
+        });
+        getWorkersService.setOnFailed(e -> {
+            MessageUtils.showError("Error", "Error connecting to server");
+        });
+
+        // Mostrar lista de tareas
+
+
+
+        /* Botones
+        btnCreateT.setOnAction(event -> createTask());
+        btnUpdateT.setOnAction(event -> updateTask());
+        btnDeleteT.setOnAction(event -> deleteTask());
+        btnCreateW.setOnAction(event -> createWorker());
+        btnUpdateW.setOnAction(event -> updateWorker());
+        btnDeleteW.setOnAction(event -> deleteWorker());
+        btnCreateP.setOnAction(event -> createPayroll());
+        btnDeleteA.setOnAction(event -> deleteAssignment());
+        btnConfirmA.setOnAction(event -> confirmAssignment());
+
+         */
     }
 
     @FXML
