@@ -12,26 +12,22 @@ public class Task {
     private int prioridad;
     private Worker trabajador;
 
-    public Task(int cod, String categoria, String descripcion, Date fecIni,
-                Date fecFin, int tiempo, int prioridad) {
-        this.cod = cod;
+    public Task(String categoria, String descripcion, Date fecIni, int prioridad) {
         this.categoria = categoria;
         this.descripcion = descripcion;
         this.fecIni = fecIni;
-        this.fecFin = fecFin;
-        this.tiempo = tiempo;
+        this.fecFin = null;
+        this.tiempo = -1;
         this.prioridad = prioridad;
         this.trabajador = null;
     }
 
-    public Task(int cod, String categoria, String descripcion, Date fecIni,
-                Date fecFin, int tiempo, int prioridad, Worker trabajador) {
-        this.cod = cod;
+    public Task(String categoria, String descripcion, Date fecIni, int prioridad, Worker trabajador) {
         this.categoria = categoria;
         this.descripcion = descripcion;
         this.fecIni = fecIni;
-        this.fecFin = fecFin;
-        this.tiempo = tiempo;
+        this.fecFin = null;
+        this.tiempo = -1;
         this.prioridad = prioridad;
         this.trabajador = trabajador;
     }
