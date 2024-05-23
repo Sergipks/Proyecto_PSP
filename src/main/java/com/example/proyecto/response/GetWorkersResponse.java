@@ -6,9 +6,13 @@ import com.example.proyecto.model.Worker;
 import java.util.List;
 
 public class GetWorkersResponse extends BaseResponse{
-    List<Worker> workers;
+    List<Worker> result;
 
-    public List<Worker> getWorkers() {
-        return workers;
+    public List<Worker> getResult() {
+        return result;
+    }
+
+    public void setResult(List<Worker> result) {
+        this.result = result;
     }
 }
