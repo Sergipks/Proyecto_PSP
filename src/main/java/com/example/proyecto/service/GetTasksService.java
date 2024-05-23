@@ -22,12 +22,18 @@ public class GetTasksService extends Service<GetTasksResponse> {
         return new Task<GetTasksResponse>() {
             @Override
             protected GetTasksResponse call() throws Exception {
-                String json = ServiceUtils.getResponse(
-                        ServiceUtils.SERVER + "/trabajos" + filter, null, "GET");
+                try {
+                    String json = ServiceUtils.getResponse(
+                            ServiceUtils.SERVER + "/trabajos" + filter, null, "GET");
 
-                Gson gson = new Gson();
-                GetTasksResponse respuesta =  gson.fromJson(json, GetTasksResponse.class);
-                return respuesta;
+                    Gson gson = new Gson();
+                    GetTasksResponse respuesta = gson.fromJson(json, GetTasksResponse.class);
+
+                    return respuesta;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("Error al deserializar la respuesta del servidor", e);
+                }
             }
         };
     }

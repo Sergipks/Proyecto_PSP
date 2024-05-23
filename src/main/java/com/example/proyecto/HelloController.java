@@ -119,13 +119,10 @@ public class HelloController implements Initializable {
 
         getTasksService.setOnSucceeded(e-> {
             if(getTasksService.getValue().getStatus() >= 200 && getTasksService.getValue().getStatus() < 300) {
-                lvTaskMg.setItems(FXCollections.observableArrayList(getTasksService.getValue().getTasks()));
+                lvTaskMg.setItems(FXCollections.observableArrayList(getTasksService.getValue().getResult()));
             } else {
                 MessageUtils.showError("Error getting tasks", getTasksService.getValue().getMessage());
             }
-        });
-        getTasksService.setOnFailed(e-> {
-            MessageUtils.showError("Error", "Error connecting to server");
         });
 
         btnCreateT.setOnAction(event -> createTask());
@@ -206,7 +203,7 @@ public class HelloController implements Initializable {
 
                 Task task;
                 if (trabajador != null)
-                    task = new Task(cod, categoria.getDisplayName(), descripcion, fecIni, prioridad, trabajador);
+                    task = new Task(cod, categoria.getDisplayName(), descripcion, fecIni, prioridad, trabajador.getIdTrabajador());
                 else {
                     task = new Task(cod, categoria.getDisplayName(), descripcion, fecIni, prioridad);
                 }
@@ -266,7 +263,7 @@ public class HelloController implements Initializable {
             getTasksService = new GetTasksService("/notassigned");
         }
 
-        List<Task> tasks = getTasksService.getValue().getTasks();
+        List<Task> tasks = getTasksService.getValue().getResult();
         // Actualizar la lista de tareas en la ListView
         lvTaskMg.setItems(FXCollections.observableArrayList(tasks));
     }

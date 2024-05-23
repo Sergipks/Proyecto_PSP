@@ -14,7 +14,7 @@ import java.util.zip.GZIPInputStream;
 public class ServiceUtils
 {
     private static String token = null;
-    public static final String SERVER = "http://localhost:8080";
+    public static final String SERVER = "http://localhost:8080/api";
 
     public static void setToken(String token) {
         ServiceUtils.token = token;
@@ -70,7 +70,7 @@ public class ServiceUtils
             }
 
             String contentTypeHeader = conn.getHeaderField("Content-Type");
-            String charset = null;
+            String charset = "UTF-8";
 
             if (contentTypeHeader != null) {
                 String[] contentTypeParts = contentTypeHeader.split(";");
