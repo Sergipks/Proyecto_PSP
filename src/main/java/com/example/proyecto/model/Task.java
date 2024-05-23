@@ -1,39 +1,63 @@
 package com.example.proyecto.model;
 
+import com.google.gson.annotations.SerializedName;
+
+import java.math.BigDecimal;
 import java.util.Date;
 
 public class Task {
-    private String codTrabajo;
-    private String categoria;
-    private String descripcion;
-    private Date fecIni;
-    private Date fecFin;
-    private int tiempo;
-    private int prioridad;
-    private Worker trabajador;
 
+    @SerializedName("codTrabajo")
+    private String codTrabajo;
+
+    @SerializedName("categoria")
+    private String categoria;
+
+    @SerializedName("descripcion")
+    private String descripcion;
+
+    @SerializedName("fechaInicio")
+    private Date fecIni;
+
+    @SerializedName("fechaFin")
+    private Date fecFin;
+
+    @SerializedName("tiempo")
+    private BigDecimal tiempo;
+
+    @SerializedName("prioridad")
+    private int prioridad;
+
+    @SerializedName("idTrabajador")
+    private String idTrabajador;
+
+    public Task() {
+    }
+
+    // Constructor con parámetros
     public Task(String cod, String categoria, String descripcion, Date fecIni, int prioridad) {
         this.codTrabajo = cod;
         this.categoria = categoria;
         this.descripcion = descripcion;
         this.fecIni = fecIni;
         this.fecFin = null;
-        this.tiempo = -1;
+        this.tiempo = null;
         this.prioridad = prioridad;
-        this.trabajador = null;
+        this.idTrabajador = null;
     }
 
-    public Task(String cod, String categoria, String descripcion, Date fecIni, int prioridad, Worker trabajador) {
+    public Task(String cod, String categoria, String descripcion, Date fecIni, int prioridad, String idTrabajador) {
         this.codTrabajo = cod;
         this.categoria = categoria;
         this.descripcion = descripcion;
         this.fecIni = fecIni;
         this.fecFin = null;
-        this.tiempo = -1;
+        this.tiempo = null;
         this.prioridad = prioridad;
-        this.trabajador = trabajador;
+        this.idTrabajador = idTrabajador;
     }
 
+    // Getters y Setters
     public String getCodTrabajo() {
         return codTrabajo;
     }
@@ -74,11 +98,11 @@ public class Task {
         this.fecFin = fecFin;
     }
 
-    public int getTiempo() {
+    public BigDecimal getTiempo() {
         return tiempo;
     }
 
-    public void setTiempo(int tiempo) {
+    public void setTiempo(BigDecimal tiempo) {
         this.tiempo = tiempo;
     }
 
@@ -90,11 +114,17 @@ public class Task {
         this.prioridad = prioridad;
     }
 
-    public Worker getTrabajador() {
-        return trabajador;
+    public String getIdTrabajador() {
+        return idTrabajador;
     }
 
-    public void setTrabajador(Worker trabajador) {
-        this.trabajador = trabajador;
+    public void setIdTrabajador(String idTrabajador) {
+        this.idTrabajador = idTrabajador;
+    }
+
+    @Override
+    public String toString() {
+        return  codTrabajo + " | " + descripcion + " | " +
+                categoria + " (prioridad: " + prioridad +')';
     }
 }

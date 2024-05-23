@@ -4,10 +4,14 @@ import com.example.proyecto.model.Task;
 
 import java.util.List;
 
-public class GetTasksResponse extends BaseResponse{
-    List<Task> result;
+public class GetTasksResponse extends BaseResponse {
+    private List<Task> result;
 
-    public List<Task> getTasks() {
+    public List<Task> getResult() {
         return result;
+    }
+
+    public void setResult(List<Task> result) {
+        this.result = result;
     }
 }
