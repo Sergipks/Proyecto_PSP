@@ -1,7 +1,7 @@
 package com.example.proyecto.model;
 
 public class Worker {
-    private int id;
+    private String idTrabajador;
     private String dni;
     private String nombre;
     private String apellidos;
@@ -9,8 +9,9 @@ public class Worker {
     private String contrasenya;
     private String email;
 
-    public Worker(String dni, String nombre, String apellidos,
+    public Worker(String id, String dni, String nombre, String apellidos,
                   String especialidad, String contrasenya, String email) {
+        this.idTrabajador = id;
         this.dni = dni;
         this.nombre = nombre;
         this.apellidos = apellidos;
@@ -19,12 +20,12 @@ public class Worker {
         this.email = email;
     }
 
-    public int getId() {
-        return id;
+    public String getIdTrabajador() {
+        return idTrabajador;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setIdTrabajador(String id) {
+        this.idTrabajador = id;
     }
 
     public String getDni() {
