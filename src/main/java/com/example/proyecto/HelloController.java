@@ -113,25 +113,18 @@ public class HelloController implements Initializable {
         rbAssigned.setToggleGroup(toggleGroup);
         rbUnassigned.setToggleGroup(toggleGroup);
 
-        // Mostrar lista de trabajadores
-        getTasksService = new GetTasksService();
-        getTasksService.start();
-
-        getTasksService.setOnSucceeded(e-> {
-            if(getTasksService.getValue().getStatus() >= 200 && getTasksService.getValue().getStatus() < 300) {
-                lvTaskMg.setItems(FXCollections.observableArrayList(getTasksService.getValue().getResult()));
-            } else {
-                MessageUtils.showError("Error getting tasks", getTasksService.getValue().getMessage());
-            }
-        });
-
-        btnCreateT.setOnAction(event -> createTask());
-      
         // Configurar listeners para los radio buttons
+        rbAll.setSelected(true);
         rbAll.setOnAction(event -> updateTaskList());
         rbAssigned.setOnAction(event -> updateTaskList());
         rbUnassigned.setOnAction(event -> updateTaskList());
+
+        // Mostrar lista de trabajadores
+        updateTaskList();
+
+        btnCreateT.setOnAction(event -> createTask());
     }
+
 
     private void createTask() {
         // Crear el diseño del formulario
@@ -257,16 +250,28 @@ public class HelloController implements Initializable {
             getTasksService = new GetTasksService();
         } else if (rbAssigned.isSelected()) {
             // Mostrar tareas asignadas (con worker no nulo)
-            getTasksService = new GetTasksService("/assigned");
+            getTasksService = new GetTasksService("/asignadas");
         } else if (rbUnassigned.isSelected()) {
             // Mostrar tareas no asignadas (con worker nulo)
-            getTasksService = new GetTasksService("/notassigned");
+            getTasksService = new GetTasksService("/sin-asignar");
         }
 
-        List<Task> tasks = getTasksService.getValue().getResult();
-        // Actualizar la lista de tareas en la ListView
-        lvTaskMg.setItems(FXCollections.observableArrayList(tasks));
+        // Configurar manejadores de éxito y fallo
+        getTasksService.setOnSucceeded(e -> {
+            if (getTasksService.getValue().getStatus() >= 200 && getTasksService.getValue().getStatus() < 300) {
+                lvTaskMg.setItems(FXCollections.observableArrayList(getTasksService.getValue().getResult()));
+            } else {
+                MessageUtils.showError("Error getting tasks", getTasksService.getValue().getMessage());
+            }
+        });
+        getTasksService.setOnFailed(e -> {
+            MessageUtils.showError("Error", "Error connecting to server");
+        });
+
+        // Iniciar el servicio
+        getTasksService.start();
     }
+
 
 
     @FXML
