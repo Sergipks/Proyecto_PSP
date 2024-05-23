@@ -35,22 +35,22 @@ public class Task {
     }
 
     // Constructor con parámetros
-    public Task(String cod, String categoria, String descripcion, Date fecIni, int prioridad) {
+    public Task(String cod, String categoria, String descripcion, int prioridad) {
         this.codTrabajo = cod;
         this.categoria = categoria;
         this.descripcion = descripcion;
-        this.fecIni = fecIni;
+        this.fecIni = null;
         this.fecFin = null;
         this.tiempo = null;
         this.prioridad = prioridad;
         this.idTrabajador = null;
     }
 
-    public Task(String cod, String categoria, String descripcion, Date fecIni, int prioridad, String idTrabajador) {
+    public Task(String cod, String categoria, String descripcion, int prioridad, String idTrabajador) {
         this.codTrabajo = cod;
         this.categoria = categoria;
         this.descripcion = descripcion;
-        this.fecIni = fecIni;
+        this.fecIni = null;
         this.fecFin = null;
         this.tiempo = null;
         this.prioridad = prioridad;

@@ -2,12 +2,12 @@ package com.example.proyecto;
 
 import com.example.proyecto.model.Task;
 import com.example.proyecto.model.Worker;
+import com.example.proyecto.service.DeleteTaskService;
 import com.example.proyecto.service.GetTasksService;
 import com.example.proyecto.service.GetWorkersService;
 import com.example.proyecto.service.PostTaskService;
 import com.example.proyecto.utils.MessageUtils;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -20,12 +20,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.Optional;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
 
 public class HelloController implements Initializable {
@@ -103,7 +103,8 @@ public class HelloController implements Initializable {
 
     private GetWorkersService getWorkersService;
     private PostTaskService postTaskService;
-    private GetTasksService getTasksService;;
+    private GetTasksService getTasksService;
+    private DeleteTaskService deleteTaskService;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -123,6 +124,39 @@ public class HelloController implements Initializable {
         updateTaskList();
 
         btnCreateT.setOnAction(event -> createTask());
+        btnDeleteT.setOnAction(event -> deleteTask());
+    }
+
+    private void deleteTask() {
+        // Obtener el índice de la tarea seleccionada en lvTaskMg
+        int selectedIndex = lvTaskMg.getSelectionModel().getSelectedIndex();
+
+        // Verificar si hay alguna tarea seleccionada
+        if (selectedIndex != -1) {
+            // Obtener la tarea seleccionada
+            Task selectedTask = lvTaskMg.getItems().get(selectedIndex);
+
+            // Obtener el cod de la tarea seleccionada
+            String taskId = selectedTask.getCodTrabajo();
+
+            deleteTaskService = new DeleteTaskService(taskId);
+
+            // Configurar manejadores de éxito y fallo
+            deleteTaskService.setOnSucceeded(e -> {
+                if (deleteTaskService.getValue().getStatus() >= 200 && deleteTaskService.getValue().getStatus() < 300) {
+                    MessageUtils.showMessage("Task deleted", deleteTaskService.getMessage());
+                    updateTaskList();
+                } else {
+                    MessageUtils.showError("Error deleting the task", deleteTaskService.getValue().getMessage());
+                }
+            });
+            deleteTaskService.setOnFailed(e -> {
+                MessageUtils.showError("Error", "Error connecting to server");
+            });
+
+            // Iniciar el servicio
+            deleteTaskService.start();
+        }
     }
 
 
@@ -141,13 +175,22 @@ public class HelloController implements Initializable {
         descripcionArea = new TextArea();
         prioridadField = new TextField();
         trabajadorChoiceBox = new ChoiceBox<>();
-        // Crear una lista de trabajadores (de ejemplo)
-        ObservableList<Worker> workers = FXCollections.observableArrayList(
-                new Worker("W001", "12345678A", "Juan", "González", "Carpinteria", "password", "juan@example.com"),
-                new Worker("W002", "87654321B", "María", "López", "Limpieza", "password", "maria@example.com"),
-                new Worker("W003", "98765432C", "Pedro", "Martínez", "Electricidad", "password", "pedro@example.com")
-        );
-        trabajadorChoiceBox.setItems(workers);
+
+        getWorkersService = new GetWorkersService();
+        // Configurar manejadores de éxito y fallo
+        getWorkersService.setOnSucceeded(e -> {
+            if (getWorkersService.getValue().getStatus() >= 200 && getWorkersService.getValue().getStatus() < 300) {
+                trabajadorChoiceBox.setItems(FXCollections.observableArrayList(getWorkersService.getValue().getResult()));
+            } else {
+                MessageUtils.showError("Error getting workers", getWorkersService.getValue().getMessage());
+            }
+        });
+        getWorkersService.setOnFailed(e -> {
+            MessageUtils.showError("Error", "Error connecting to server");
+        });
+
+        // Iniciar el servicio
+        getWorkersService.start();
 
         // Agregar los campos al diseño
         gridPane.add(new Label("Código:"), 0, 0);
@@ -191,18 +234,32 @@ public class HelloController implements Initializable {
                 int prioridad = Integer.parseInt(prioridadField.getText());
                 Worker trabajador = trabajadorChoiceBox.getValue();
 
-                // Convertir LocalDate a Date
-                Date fecIni = Date.from(fecIniLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-
                 Task task;
-                if (trabajador != null)
-                    task = new Task(cod, categoria.getDisplayName(), descripcion, fecIni, prioridad, trabajador.getIdTrabajador());
-                else {
-                    task = new Task(cod, categoria.getDisplayName(), descripcion, fecIni, prioridad);
+                String filter = "";
+                if (trabajador != null) {
+                    task = new Task(cod, categoria.getDisplayName(), descripcion, prioridad, trabajador.getIdTrabajador());
+                    filter = "/trabajador/" + trabajador.getIdTrabajador() + "/crear-trabajo";
                 }
-                //postTaskService = new PostTaskService(task);
-                MessageUtils.showMessage("Tarea creada", "Tarea creada con éxito");
-                System.out.println("Tarea creada");
+                else {
+                    task = new Task(cod, categoria.getDisplayName(), descripcion, prioridad);
+                }
+                postTaskService = new PostTaskService(task, filter);
+
+                // Configurar manejadores de éxito y fallo
+                postTaskService.setOnSucceeded(e -> {
+                    if (postTaskService.getValue().getStatus() >= 200 && postTaskService.getValue().getStatus() < 300) {
+                        MessageUtils.showMessage("Task Created", "Task created successfully");
+                        updateTaskList();
+                    } else {
+                        MessageUtils.showError("Error creating task", postTaskService.getValue().getMessage());
+                    }
+                });
+                postTaskService.setOnFailed(e -> {
+                    MessageUtils.showError("Error", "Error connecting to server");
+                });
+
+                // Iniciar el servicio
+                postTaskService.start();
             }
         });
     }
