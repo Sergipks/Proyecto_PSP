@@ -3,7 +3,7 @@ package com.example.proyecto.model;
 import java.util.Date;
 
 public class Task {
-    private int cod;
+    private String codTrabajo;
     private String categoria;
     private String descripcion;
     private Date fecIni;
@@ -12,7 +12,8 @@ public class Task {
     private int prioridad;
     private Worker trabajador;
 
-    public Task(String categoria, String descripcion, Date fecIni, int prioridad) {
+    public Task(String cod, String categoria, String descripcion, Date fecIni, int prioridad) {
+        this.codTrabajo = cod;
         this.categoria = categoria;
         this.descripcion = descripcion;
         this.fecIni = fecIni;
@@ -22,7 +23,8 @@ public class Task {
         this.trabajador = null;
     }
 
-    public Task(String categoria, String descripcion, Date fecIni, int prioridad, Worker trabajador) {
+    public Task(String cod, String categoria, String descripcion, Date fecIni, int prioridad, Worker trabajador) {
+        this.codTrabajo = cod;
         this.categoria = categoria;
         this.descripcion = descripcion;
         this.fecIni = fecIni;
@@ -32,12 +34,12 @@ public class Task {
         this.trabajador = trabajador;
     }
 
-    public int getCod() {
-        return cod;
+    public String getCodTrabajo() {
+        return codTrabajo;
     }
 
-    public void setCod(int cod) {
-        this.cod = cod;
+    public void setCodTrabajo(String codTrabajo) {
+        this.codTrabajo = codTrabajo;
     }
 
     public String getCategoria() {

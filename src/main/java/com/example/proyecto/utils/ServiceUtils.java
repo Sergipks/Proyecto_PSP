@@ -69,7 +69,19 @@ public class ServiceUtils
                 wr.close();
             }
 
-            String charset = getCharset(conn.getHeaderField("Content-Type"));
+            String contentTypeHeader = conn.getHeaderField("Content-Type");
+            String charset = null;
+
+            if (contentTypeHeader != null) {
+                String[] contentTypeParts = contentTypeHeader.split(";");
+                for (String part : contentTypeParts) {
+                    part = part.trim();
+                    if (part.startsWith("charset=")) {
+                        charset = part.substring("charset=".length());
+                        break;
+                    }
+                }
+            }
 
             if (charset != null) {
                 InputStream input = conn.getInputStream();

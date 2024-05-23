@@ -1,14 +1,14 @@
 package com.example.proyecto.response;
 
 public class BaseResponse {
-    private boolean error;
-    private String errorMessage;
+    private int status;
+    private String message;
 
-    public boolean isError() {
-        return error;
+    public int getStatus() {
+        return status;
     }
 
-    public String getErrorMessage() {
-        return errorMessage;
+    public String getMessage() {
+        return message;
     }
 }

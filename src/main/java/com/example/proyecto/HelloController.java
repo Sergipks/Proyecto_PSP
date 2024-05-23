@@ -87,7 +87,10 @@ public class HelloController implements Initializable {
 
     // Campos del formulario
     @FXML
-    private TextField categoriaField;
+    private TextField codField;
+
+    @FXML
+    private ChoiceBox<Categoria> categoriaChoiceBox;
 
     @FXML
     private TextArea descripcionArea;
@@ -100,7 +103,8 @@ public class HelloController implements Initializable {
 
     private GetWorkersService getWorkersService;
     private PostTaskService postTaskService;
-    private GetTasksService getTasksService;
+    private GetTasksService getTasksService;;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         // Seleccionar un radiobutton
@@ -110,18 +114,17 @@ public class HelloController implements Initializable {
         rbUnassigned.setToggleGroup(toggleGroup);
 
         // Mostrar lista de trabajadores
-        getWorkersService = new GetWorkersService();
-        getWorkersService.start();
+        getTasksService = new GetTasksService();
+        getTasksService.start();
 
-        getWorkersService.setOnSucceeded(e-> {
-            if(!getWorkersService.getValue().isError()) {
-                System.out.println(getWorkersService.getValue().getWorkers());
-                lvWorkersMg.setItems(FXCollections.observableArrayList(getWorkersService.getValue().getWorkers()));
+        getTasksService.setOnSucceeded(e-> {
+            if(getTasksService.getValue().getStatus() >= 200 && getTasksService.getValue().getStatus() < 300) {
+                lvTaskMg.setItems(FXCollections.observableArrayList(getTasksService.getValue().getTasks()));
             } else {
-                MessageUtils.showError("Error getting tasks", getWorkersService.getValue().getErrorMessage());
+                MessageUtils.showError("Error getting tasks", getTasksService.getValue().getMessage());
             }
         });
-        getWorkersService.setOnFailed(e-> {
+        getTasksService.setOnFailed(e-> {
             MessageUtils.showError("Error", "Error connecting to server");
         });
 
@@ -141,28 +144,32 @@ public class HelloController implements Initializable {
         gridPane.setVgap(10);
 
         // Inicializar los campos del formulario
-        categoriaField = new TextField();
+        codField = new TextField();
+        categoriaChoiceBox = new ChoiceBox<>();
+        categoriaChoiceBox.getItems().addAll(Categoria.values()); // Cargar valores del enum
+        categoriaChoiceBox.setValue(Categoria.LIMPIEZA); // Valor por defecto
         descripcionArea = new TextArea();
         prioridadField = new TextField();
         trabajadorChoiceBox = new ChoiceBox<>();
         // Crear una lista de trabajadores (de ejemplo)
         ObservableList<Worker> workers = FXCollections.observableArrayList(
-                new Worker("12345678A", "Juan", "González", "Programador", "password", "juan@example.com"),
-                new Worker("87654321B", "María", "López", "Diseñador", "password", "maria@example.com"),
-                new Worker("98765432C", "Pedro", "Martínez", "Tester", "password", "pedro@example.com")
+                new Worker("W001", "12345678A", "Juan", "González", "Carpinteria", "password", "juan@example.com"),
+                new Worker("W002", "87654321B", "María", "López", "Limpieza", "password", "maria@example.com"),
+                new Worker("W003", "98765432C", "Pedro", "Martínez", "Electricidad", "password", "pedro@example.com")
         );
         trabajadorChoiceBox.setItems(workers);
-        //trabajadorChoiceBox.setItems(FXCollections.observableArrayList(getWorkersService.getValue().getWorkers()));
 
         // Agregar los campos al diseño
-        gridPane.add(new Label("Categoría:"), 0, 0);
-        gridPane.add(categoriaField, 1, 0);
-        gridPane.add(new Label("Descripción:"), 0, 1);
-        gridPane.add(descripcionArea, 1, 1);
-        gridPane.add(new Label("Prioridad:"), 0, 2);
-        gridPane.add(prioridadField, 1, 2);
-        gridPane.add(new Label("Trabajador:"), 0, 3);
-        gridPane.add(trabajadorChoiceBox, 1, 3);
+        gridPane.add(new Label("Código:"), 0, 0);
+        gridPane.add(codField, 1, 0);
+        gridPane.add(new Label("Categoría:"), 0, 1);
+        gridPane.add(categoriaChoiceBox, 1, 1);
+        gridPane.add(new Label("Descripción:"), 0, 2);
+        gridPane.add(descripcionArea, 1, 2);
+        gridPane.add(new Label("Prioridad:"), 0, 3);
+        gridPane.add(prioridadField, 1, 3);
+        gridPane.add(new Label("Trabajador:"), 0, 4);
+        gridPane.add(trabajadorChoiceBox, 1, 4);
 
         // Crear el diálogo
         Dialog<ButtonType> dialog = new Dialog<>();
@@ -178,7 +185,7 @@ public class HelloController implements Initializable {
 
         createButton.setDisable(true);
         // Validar el formulario
-        categoriaField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
+        codField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
         descripcionArea.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
         prioridadField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
         trabajadorChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
@@ -187,7 +194,8 @@ public class HelloController implements Initializable {
         dialog.showAndWait().ifPresent(response -> {
             if (response.getButtonData() == ButtonType.OK.getButtonData()) {
                 // Obtener los valores del formulario y crear la tarea
-                String categoria = categoriaField.getText();
+                String cod = codField.getText();
+                Categoria categoria = categoriaChoiceBox.getValue();
                 String descripcion = descripcionArea.getText();
                 LocalDate fecIniLocalDate = LocalDate.now();
                 int prioridad = Integer.parseInt(prioridadField.getText());
@@ -198,9 +206,9 @@ public class HelloController implements Initializable {
 
                 Task task;
                 if (trabajador != null)
-                    task = new Task(categoria, descripcion, fecIni, prioridad, trabajador);
+                    task = new Task(cod, categoria.getDisplayName(), descripcion, fecIni, prioridad, trabajador);
                 else {
-                    task = new Task(categoria, descripcion, fecIni, prioridad);
+                    task = new Task(cod, categoria.getDisplayName(), descripcion, fecIni, prioridad);
                 }
                 //postTaskService = new PostTaskService(task);
                 MessageUtils.showMessage("Tarea creada", "Tarea creada con éxito");
@@ -211,8 +219,11 @@ public class HelloController implements Initializable {
 
     private void validateFields(Node createButton) {
         boolean isPrioridadNumeric = isPrioridadValid(prioridadField.getText());
-        boolean allFieldsFilled = !categoriaField.getText().isEmpty() &&
-                !descripcionArea.getText().isEmpty() && isPrioridadNumeric;
+        boolean categoriaEspecialidad = isCategoriaValid(categoriaChoiceBox.getValue().getDisplayName());
+
+        boolean allFieldsFilled = !codField.getText().isEmpty() && codField.getText().length() == 5 &&
+                !descripcionArea.getText().isEmpty() && descripcionArea.getText().length() < 500 &&
+                isPrioridadNumeric && categoriaEspecialidad;
 
         // Habilitar el botón si todos los campos están rellenos
         createButton.setDisable(!allFieldsFilled);
@@ -232,6 +243,16 @@ public class HelloController implements Initializable {
         }
 
         return true;
+    }
+
+    private boolean isCategoriaValid (String str) {
+        if(trabajadorChoiceBox.getValue() == null)
+            return true;
+
+        if (trabajadorChoiceBox.getValue() != null && trabajadorChoiceBox.getValue().getEspecialidad().equals(str))
+            return true;
+        else
+            return false;
     }
 
     private void updateTaskList() {
@@ -262,5 +283,22 @@ public class HelloController implements Initializable {
             rbAll.setSelected(false);
             rbUnassigned.setSelected(false);
         }
+    }
+}
+
+enum Categoria {
+    LIMPIEZA("Limpieza"),
+    CARPINTERIA("Carpinteria"),
+    FONTANERIA("Fontaneria"),
+    ELECTRICIDAD("Electricidad");
+
+    private final String displayName;
+
+    Categoria(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 }
