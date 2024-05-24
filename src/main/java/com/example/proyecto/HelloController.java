@@ -66,7 +66,7 @@ public class HelloController implements Initializable {
     private Button btnCreateP;
 
     @FXML
-    private ListView<String> lvTasksA;
+    private ListView<Task> lvTasksA;
 
     @FXML
     private ListView<Worker> lvWorkersA;
@@ -82,6 +82,9 @@ public class HelloController implements Initializable {
 
     @FXML
     private Button btnConfirmA;
+
+    @FXML
+    private TabPane tabPane;
 
     // Campos del formulario
     @FXML
@@ -126,12 +129,56 @@ public class HelloController implements Initializable {
         rbAssigned.setOnAction(event -> updateTaskList());
         rbUnassigned.setOnAction(event -> updateTaskList());
 
+        tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldTab, newTab) -> {
+            if (newTab != null) {
+                handleTabChange(newTab);
+            }
+        });
+
         // Mostrar lista de trabajadores
         updateTaskList();
 
         btnCreateT.setOnAction(event -> createTask());
         btnDeleteT.setOnAction(event -> deleteTask());
         btnUpdateT.setOnAction(event -> updateTask());
+    }
+
+    private void handleTabChange(Tab newTab) {
+        String tabText = newTab.getText();
+
+        switch (tabText) {
+            case "Task management":
+                // Lógica para cuando se selecciona la pestaña "Task management"
+                updateTaskList();
+                break;
+            case "Workers management":
+                // Lógica para cuando se selecciona la pestaña "Workers management"
+
+                break;
+            case "Task Assignment":
+                // Lógica para cuando se selecciona la pestaña "Task Assignment"
+                unassignedTaskList();
+                break;
+        }
+    }
+
+    private void unassignedTaskList() {
+        getTasksService = new GetTasksService("/sin-asignar");
+
+        // Configurar manejadores de éxito y fallo
+        getTasksService.setOnSucceeded(e -> {
+            if (getTasksService.getValue().getStatus() >= 200 && getTasksService.getValue().getStatus() < 300) {
+                lvTasksA.setItems(FXCollections.observableArrayList(getTasksService.getValue().getResult()));
+            } else {
+                MessageUtils.showError("Error getting tasks", getTasksService.getValue().getMessage());
+            }
+        });
+        getTasksService.setOnFailed(e -> {
+            MessageUtils.showError("Error", "Error connecting to server");
+        });
+
+        // Iniciar el servicio
+        getTasksService.start();
     }
 
     private void deleteTask() {
