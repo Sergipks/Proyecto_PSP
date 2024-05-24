@@ -21,9 +21,10 @@ public class PostWorkerService extends Service<GetWorkerResponse> {
             @Override
             protected GetWorkerResponse call() throws Exception {
                 Gson gson = new Gson();
-                System.out.println(gson.toJson(worker));
+
                 String json = ServiceUtils.getResponse(
                         ServiceUtils.SERVER + "/workers", gson.toJson(worker), "POST");
+
                 GetWorkerResponse response = gson.fromJson(json, GetWorkerResponse.class);
                 return response;
             }

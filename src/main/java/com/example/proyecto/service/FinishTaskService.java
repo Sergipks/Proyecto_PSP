@@ -7,19 +7,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.concurrent.Service;
 
-public class PostTaskService extends Service<GetTaskResponse> {
+public class FinishTaskService extends Service<GetTaskResponse> {
     Task task;
-    private String filter;
 
-    public PostTaskService(Task task, String filter){
+    public FinishTaskService(Task task){
         this.task = task;
-        this.filter = filter;
-    }
-
-    public PostTaskService(Task task)
-    {
-        this.task = task;
-        this.filter = "";
     }
 
     @Override
@@ -30,7 +22,7 @@ public class PostTaskService extends Service<GetTaskResponse> {
                 Gson gson = new GsonBuilder().serializeNulls().create();
 
                 String json = ServiceUtils.getResponse(
-                        ServiceUtils.SERVER + "/trabajos" + filter, gson.toJson(task), "POST");
+                        ServiceUtils.SERVER + "/trabajos/" + task.getCodTrabajo() + "/finalizar", null, "PUT");
 
                 GetTaskResponse response = gson.fromJson(json, GetTaskResponse.class);
                 return response;
