@@ -2,6 +2,7 @@ package com.example.proyecto;
 
 import com.example.proyecto.model.Task;
 import com.example.proyecto.model.Worker;
+import com.example.proyecto.response.BaseResponse;
 import com.example.proyecto.service.*;
 import com.example.proyecto.utils.MessageUtils;
 import javafx.collections.FXCollections;
@@ -115,6 +116,8 @@ public class HelloController implements Initializable {
     private DeleteTaskService deleteTaskService;
     private UpdateTaskService updateTaskService;
 
+    private DeleteWorkerService deleteWorkerService;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         // Seleccionar un radiobutton
@@ -138,9 +141,16 @@ public class HelloController implements Initializable {
         // Mostrar lista de trabajadores
         updateTaskList();
 
+        // Mostrar lista de trabajadores
+        updateWorkerList();
+
         btnCreateT.setOnAction(event -> createTask());
         btnDeleteT.setOnAction(event -> deleteTask());
         btnUpdateT.setOnAction(event -> updateTask());
+
+        btnCreateW.setOnAction(event -> createWorker());
+        btnDeleteW.setOnAction(event -> deleteWorker());
+
     }
 
     private void handleTabChange(Tab newTab) {
@@ -510,6 +520,132 @@ public class HelloController implements Initializable {
     }
 
 
+    private void updateWorkerList() {
+        getWorkersService = new GetWorkersService();
+        // Configurar manejadores de éxito y fallo
+        getWorkersService.setOnSucceeded(e -> {
+            if (getWorkersService.getValue().getStatus() >= 200 && getWorkersService.getValue().getStatus() < 300) {
+                lvWorkersMg.setItems(FXCollections.observableArrayList(getWorkersService.getValue().getResult()));
+            } else {
+                MessageUtils.showError("Error getting workers", getWorkersService.getValue().getMessage());
+            }
+        });
+        getWorkersService.setOnFailed(e -> {
+            MessageUtils.showError("Error", "Error connecting to server");
+        });
+
+        // Iniciar el servicio
+        getWorkersService.start();
+    }
+
+
+    private void createWorker() {
+        // Crear el diseño del formulario
+        GridPane gridPane = new GridPane();
+        gridPane.setPadding(new Insets(20));
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+
+        // Inicializar los campos del formulario
+        TextField dniField = new TextField();
+        TextField nombreField = new TextField();
+        TextField apellidosField = new TextField();
+        TextField especialidadField = new TextField();
+        PasswordField contrasenyaField = new PasswordField();
+        TextField emailField = new TextField();
+
+        // Agregar los campos al diseño
+        gridPane.add(new Label("DNI:"), 0, 0);
+        gridPane.add(dniField, 1, 0);
+        gridPane.add(new Label("Nombre:"), 0, 1);
+        gridPane.add(nombreField, 1, 1);
+        gridPane.add(new Label("Apellidos:"), 0, 2);
+        gridPane.add(apellidosField, 1, 2);
+        gridPane.add(new Label("Especialidad:"), 0, 3);
+        gridPane.add(especialidadField, 1, 3);
+        gridPane.add(new Label("Contraseña:"), 0, 4);
+        gridPane.add(contrasenyaField, 1, 4);
+        gridPane.add(new Label("Email:"), 0, 5);
+        gridPane.add(emailField, 1, 5);
+
+        // Crear el diálogo
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Crear Trabajador");
+        dialog.getDialogPane().setContent(gridPane);
+
+        // Agregar botones al diálogo
+        ButtonType createButtonType = new ButtonType("Crear", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
+
+        // Habilitar el botón de crear cuando el formulario es válido
+        Node createButton = dialog.getDialogPane().lookupButton(createButtonType);
+        createButton.setDisable(true);
+
+        // Validar el formulario
+        dniField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
+        nombreField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
+        apellidosField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
+        especialidadField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
+        contrasenyaField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
+        emailField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
+
+        // Mostrar el diálogo y esperar a que el usuario interactúe
+        dialog.showAndWait().ifPresent(response -> {
+            if (response.getButtonData() == ButtonType.OK.getButtonData()) {
+                // Obtener los valores del formulario y crear el trabajador
+                String dni = dniField.getText();
+                String nombre = nombreField.getText();
+                String apellidos = apellidosField.getText();
+                String especialidad = especialidadField.getText();
+                String contrasenya = contrasenyaField.getText();
+                String email = emailField.getText();
+
+                //Llamas al servicio para crear el trabajador con los datos ingresados
+
+                //Imprimimos los datos del nuevo trabajador
+                Worker nuevoTrabajador = new Worker("", dni, nombre, apellidos, especialidad, contrasenya, email);
+                System.out.println("Trabajador creado: " + nuevoTrabajador);
+
+                // Limpia los campos
+                dniField.clear();
+                nombreField.clear();
+                apellidosField.clear();
+                especialidadField.clear();
+                contrasenyaField.clear();
+                emailField.clear();
+            }
+        });
+    }
+
+    private void deleteWorker() {
+        int selectedIndex = lvWorkersMg.getSelectionModel().getSelectedIndex();
+        if (selectedIndex != -1) {
+            Worker selectedWorker = lvWorkersMg.getItems().get(selectedIndex);
+            String workerId = selectedWorker.getIdTrabajador();
+
+            deleteWorkerService = new DeleteWorkerService(workerId);
+
+            deleteWorkerService.setOnSucceeded(e -> {
+                BaseResponse response = deleteWorkerService.getValue();
+                if (response != null) {
+                    if (response.getStatus() >= 200 && response.getStatus() < 300) {
+                        MessageUtils.showMessage("Worker deleted", response.getMessage());
+                        updateWorkerList();
+                    } else {
+                        MessageUtils.showError("Error deleting the worker", response.getMessage());
+                    }
+                } else {
+                    MessageUtils.showError("Error", "Null response received from server");
+                }
+            });
+
+            deleteWorkerService.setOnFailed(e -> {
+                MessageUtils.showError("Error", "Error connecting to server");
+            });
+
+            deleteWorkerService.start();
+        }
+    }
 
     @FXML
     private void onRadioButtonSelected() {
