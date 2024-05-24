@@ -200,7 +200,7 @@ public class HelloController implements Initializable {
         cbJobs.setValue(null); // Valor por defecto
 
         cbJobs.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            workerFilter = "/" + cbJobs.getSelectionModel().getSelectedItem().toString();
+            workerFilter = "/especialidad/" + cbJobs.getSelectionModel().getSelectedItem().getDisplayName();
             loadWorkersList();
         });
 
@@ -615,6 +615,7 @@ public class HelloController implements Initializable {
         Node createButton = dialog.getDialogPane().lookupButton(createButtonType);
         createButton.setDisable(true);
 
+        /*
         // Validar el formulario
         dniField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
         nombreField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
@@ -622,6 +623,7 @@ public class HelloController implements Initializable {
         especialidadField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
         contrasenyaField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
         emailField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
+        */
 
         // Mostrar el diálogo y esperar a que el usuario interactúe
         dialog.showAndWait().ifPresent(response -> {
