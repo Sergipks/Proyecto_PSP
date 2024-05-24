@@ -75,7 +75,7 @@ public class HelloController implements Initializable {
     private ListView<String> lvAssignments;
 
     @FXML
-    private ChoiceBox<String> cbJobs;
+    private ChoiceBox<Categoria> cbJobs;
 
     @FXML
     private Button btnDeleteA;
@@ -107,6 +107,8 @@ public class HelloController implements Initializable {
 
     @FXML
     private ChoiceBox<Worker> trabajadorChoiceBox;
+
+    private String workerFilter;
 
     private GetWorkersService getWorkersService;
     private PostTaskService postTaskService;
@@ -157,12 +159,13 @@ public class HelloController implements Initializable {
                 break;
             case "Task Assignment":
                 // Lógica para cuando se selecciona la pestaña "Task Assignment"
-                unassignedTaskList();
+                assignmentTaskList();
+                assignmentWorkersList();
                 break;
         }
     }
 
-    private void unassignedTaskList() {
+    private void assignmentTaskList() {
         getTasksService = new GetTasksService("/sin-asignar");
 
         // Configurar manejadores de éxito y fallo
@@ -179,6 +182,37 @@ public class HelloController implements Initializable {
 
         // Iniciar el servicio
         getTasksService.start();
+    }
+
+    private void assignmentWorkersList(){
+        workerFilter = "";
+        cbJobs.getItems().addAll(Categoria.values()); // Cargar valores del enum
+        cbJobs.setValue(null); // Valor por defecto
+
+        cbJobs.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            workerFilter = "/" + cbJobs.getSelectionModel().getSelectedItem().toString();
+            loadWorkersList();
+        });
+
+        loadWorkersList();
+    }
+
+    private void loadWorkersList(){
+        getWorkersService = new GetWorkersService(workerFilter);
+        // Configurar manejadores de éxito y fallo
+        getWorkersService.setOnSucceeded(e -> {
+            if (getWorkersService.getValue().getStatus() >= 200 && getWorkersService.getValue().getStatus() < 300) {
+                lvWorkersA.setItems(FXCollections.observableArrayList(getWorkersService.getValue().getResult()));
+            } else {
+                MessageUtils.showError("Error getting workers", getWorkersService.getValue().getMessage());
+            }
+        });
+        getWorkersService.setOnFailed(e -> {
+            MessageUtils.showError("Error", "Error connecting to server");
+        });
+
+        // Iniciar el servicio
+        getWorkersService.start();
     }
 
     private void deleteTask() {
