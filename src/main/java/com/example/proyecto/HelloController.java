@@ -17,6 +17,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 
+import java.math.BigDecimal;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -66,7 +67,7 @@ public class HelloController implements Initializable {
     private Button btnCreateP;
 
     @FXML
-    private ListView<String> lvTasksA;
+    private ListView<Task> lvTasksA;
 
     @FXML
     private ListView<Worker> lvWorkersA;
@@ -83,6 +84,9 @@ public class HelloController implements Initializable {
     @FXML
     private Button btnConfirmA;
 
+    @FXML
+    private TabPane tabPane;
+
     // Campos del formulario
     @FXML
     private TextField codField;
@@ -97,12 +101,20 @@ public class HelloController implements Initializable {
     private TextField prioridadField;
 
     @FXML
+    private TextField tiempoField;
+
+    @FXML
+    private CheckBox finalizarCheckbox;
+
+    @FXML
     private ChoiceBox<Worker> trabajadorChoiceBox;
 
     private GetWorkersService getWorkersService;
     private PostTaskService postTaskService;
     private GetTasksService getTasksService;
+    private GetTaskService getTaskService;
     private DeleteTaskService deleteTaskService;
+    private UpdateTaskService updateTaskService;
 
     private DeleteWorkerService deleteWorkerService;
 
@@ -120,6 +132,12 @@ public class HelloController implements Initializable {
         rbAssigned.setOnAction(event -> updateTaskList());
         rbUnassigned.setOnAction(event -> updateTaskList());
 
+        tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldTab, newTab) -> {
+            if (newTab != null) {
+                handleTabChange(newTab);
+            }
+        });
+
         // Mostrar lista de trabajadores
         updateTaskList();
 
@@ -128,9 +146,49 @@ public class HelloController implements Initializable {
 
         btnCreateT.setOnAction(event -> createTask());
         btnDeleteT.setOnAction(event -> deleteTask());
+        btnUpdateT.setOnAction(event -> updateTask());
 
         btnCreateW.setOnAction(event -> createWorker());
         btnDeleteW.setOnAction(event -> deleteWorker());
+
+    }
+
+    private void handleTabChange(Tab newTab) {
+        String tabText = newTab.getText();
+
+        switch (tabText) {
+            case "Task management":
+                // Lógica para cuando se selecciona la pestaña "Task management"
+                updateTaskList();
+                break;
+            case "Workers management":
+                // Lógica para cuando se selecciona la pestaña "Workers management"
+
+                break;
+            case "Task Assignment":
+                // Lógica para cuando se selecciona la pestaña "Task Assignment"
+                unassignedTaskList();
+                break;
+        }
+    }
+
+    private void unassignedTaskList() {
+        getTasksService = new GetTasksService("/sin-asignar");
+
+        // Configurar manejadores de éxito y fallo
+        getTasksService.setOnSucceeded(e -> {
+            if (getTasksService.getValue().getStatus() >= 200 && getTasksService.getValue().getStatus() < 300) {
+                lvTasksA.setItems(FXCollections.observableArrayList(getTasksService.getValue().getResult()));
+            } else {
+                MessageUtils.showError("Error getting tasks", getTasksService.getValue().getMessage());
+            }
+        });
+        getTasksService.setOnFailed(e -> {
+            MessageUtils.showError("Error", "Error connecting to server");
+        });
+
+        // Iniciar el servicio
+        getTasksService.start();
     }
 
     private void deleteTask() {
@@ -224,10 +282,11 @@ public class HelloController implements Initializable {
 
         createButton.setDisable(true);
         // Validar el formulario
-        codField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
-        descripcionArea.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
-        prioridadField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
-        trabajadorChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
+        codField.textProperty().addListener((observable, oldValue, newValue) -> validateCreateFields(createButton));
+        categoriaChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> validateCreateFields(createButton));
+        descripcionArea.textProperty().addListener((observable, oldValue, newValue) -> validateCreateFields(createButton));
+        prioridadField.textProperty().addListener((observable, oldValue, newValue) -> validateCreateFields(createButton));
+        trabajadorChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> validateCreateFields(createButton));
 
         // Mostrar el diálogo y esperar a que el usuario interactúe
         dialog.showAndWait().ifPresent(response -> {
@@ -236,7 +295,6 @@ public class HelloController implements Initializable {
                 String cod = codField.getText();
                 Categoria categoria = categoriaChoiceBox.getValue();
                 String descripcion = descripcionArea.getText();
-                LocalDate fecIniLocalDate = LocalDate.now();
                 int prioridad = Integer.parseInt(prioridadField.getText());
                 Worker trabajador = trabajadorChoiceBox.getValue();
 
@@ -270,13 +328,121 @@ public class HelloController implements Initializable {
         });
     }
 
-    private void validateFields(Node createButton) {
+    private void updateTask() {
+        // Obtener el índice de la tarea seleccionada en lvTaskMg
+        int selectedIndex = lvTaskMg.getSelectionModel().getSelectedIndex();
+
+        // Verificar si hay alguna tarea seleccionada
+        if (selectedIndex != -1) {
+            // Obtener la tarea seleccionada
+            Task selectedTask = lvTaskMg.getItems().get(selectedIndex);
+
+            // Crear el diseño del formulario
+            GridPane gridPane = new GridPane();
+            gridPane.setPadding(new Insets(20));
+            gridPane.setHgap(10);
+            gridPane.setVgap(10);
+
+            // Inicializar los campos del formulario
+            descripcionArea = new TextArea(selectedTask.getDescripcion());
+            prioridadField = new TextField(String.valueOf(selectedTask.getPrioridad()));
+            finalizarCheckbox = new CheckBox("Finalizar tarea");
+            tiempoField = new TextField();
+            tiempoField.setPromptText("Tiempo empleado");
+
+            // Agregar los campos al diseño
+            gridPane.add(new Label("Descripción:"), 0, 0);
+            gridPane.add(descripcionArea, 1, 0);
+            gridPane.add(new Label("Prioridad:"), 0, 1);
+            gridPane.add(prioridadField, 1, 1);
+            gridPane.add(finalizarCheckbox, 0, 2);
+            gridPane.add(tiempoField, 1, 2);
+            tiempoField.setVisible(false); // Ocultar el campo de tiempo al inicio
+
+            // Añadir listener al checkbox para mostrar/ocultar el campo de tiempo
+            finalizarCheckbox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                tiempoField.setVisible(newValue);
+            });
+
+            // Crear el diálogo
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Actualizar tarea");
+            dialog.getDialogPane().setContent(gridPane);
+
+            // Agregar botones al diálogo
+            ButtonType updateButtonType = new ButtonType("Actualizar", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
+
+            // Habilitar el botón de actualizar cuando el formulario es válido
+            Node updateButton = dialog.getDialogPane().lookupButton(updateButtonType);
+            updateButton.setDisable(true);
+
+            // Validar el formulario
+            descripcionArea.textProperty().addListener((observable, oldValue, newValue) -> validateUpdateFields(updateButton));
+            prioridadField.textProperty().addListener((observable, oldValue, newValue) -> validateUpdateFields(updateButton));
+            tiempoField.textProperty().addListener((observable, oldValue, newValue) -> validateUpdateFields(updateButton));
+
+            // Mostrar el diálogo y esperar a que el usuario interactúe
+            dialog.showAndWait().ifPresent(response -> {
+                if (response.getButtonData() == ButtonType.OK.getButtonData()) {
+                    selectedTask.setDescripcion(descripcionArea.getText());
+                    selectedTask.setPrioridad(Integer.parseInt(prioridadField.getText()));
+
+                    if (finalizarCheckbox.isSelected()) {
+                        BigDecimal tiempo = new BigDecimal(tiempoField.getText());
+                        selectedTask.setTiempo(tiempo);
+                    }
+
+                    selectedTask.setFecIni(null);
+                    selectedTask.setFecFin(null);
+                    updateTaskService = new UpdateTaskService(selectedTask);
+
+                    // Configurar manejadores de éxito y fallo
+                    updateTaskService.setOnSucceeded(e -> {
+                        if (updateTaskService.getValue().getStatus() >= 200 && updateTaskService.getValue().getStatus() < 300) {
+                            MessageUtils.showMessage("Tarea Actualizada", "Tarea actualizada exitosamente");
+                            if (finalizarCheckbox.isSelected()) {
+                                FinishTaskService finishTaskService = new FinishTaskService(updateTaskService.getValue().getResult());
+                                finishTaskService.start();
+                            }
+                            updateTaskList();
+                        } else {
+                            MessageUtils.showError("Error actualizando la tarea", updateTaskService.getValue().getMessage());
+                        }
+                    });
+                    updateTaskService.setOnFailed(e -> {
+                        MessageUtils.showError("Error", "Error conectando con el servidor");
+                    });
+
+                    // Iniciar el servicio
+                    updateTaskService.start();
+                }
+            });
+        }
+    }
+
+
+    private void validateCreateFields(Node createButton) {
         boolean isPrioridadNumeric = isPrioridadValid(prioridadField.getText());
         boolean categoriaEspecialidad = isCategoriaValid(categoriaChoiceBox.getValue().getDisplayName());
 
         boolean allFieldsFilled = !codField.getText().isEmpty() && codField.getText().length() == 5 &&
                 !descripcionArea.getText().isEmpty() && descripcionArea.getText().length() < 500 &&
                 isPrioridadNumeric && categoriaEspecialidad;
+
+        // Habilitar el botón si todos los campos están rellenos
+        createButton.setDisable(!allFieldsFilled);
+    }
+
+    private void validateUpdateFields(Node createButton) {
+        boolean isPrioridadNumeric = isPrioridadValid(prioridadField.getText());
+        boolean isTiempoValid = true;
+
+        if (finalizarCheckbox.isSelected())
+            isTiempoValid = isTiempoValid(tiempoField.getText());
+
+        boolean allFieldsFilled = !descripcionArea.getText().isEmpty() && descripcionArea.getText().length() < 500 &&
+                isPrioridadNumeric && isTiempoValid ;
 
         // Habilitar el botón si todos los campos están rellenos
         createButton.setDisable(!allFieldsFilled);
@@ -296,6 +462,24 @@ public class HelloController implements Initializable {
         }
 
         return true;
+    }
+
+    private boolean isTiempoValid(String str) {
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        try {
+            BigDecimal tiempo = new BigDecimal(str);
+            if (tiempo.compareTo(BigDecimal.ZERO) < 0) {
+                return false;
+            }
+            // Aquí puedes agregar cualquier otra validación adicional que necesites
+            // Por ejemplo, si necesitas que el valor esté entre 0 y 3, puedes descomentar la siguiente línea:
+            // return tiempo.compareTo(BigDecimal.ZERO) >= 0 && tiempo.compareTo(new BigDecimal("3")) <= 0;
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     private boolean isCategoriaValid (String str) {
