@@ -15,16 +15,22 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 
 import java.math.BigDecimal;
 import java.net.URL;
+import java.text.Collator;
+import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class HelloController implements Initializable {
@@ -73,7 +79,7 @@ public class HelloController implements Initializable {
     private ListView<Worker> lvWorkersA;
 
     @FXML
-    private ListView<String> lvAssignments;
+    private ListView<Task> lvAssignments;
 
     @FXML
     private ChoiceBox<Categoria> cbJobs;
@@ -120,6 +126,8 @@ public class HelloController implements Initializable {
 
     private DeleteWorkerService deleteWorkerService;
 
+    boolean errorAssignment;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         // Seleccionar un radiobutton
@@ -153,6 +161,119 @@ public class HelloController implements Initializable {
         btnCreateW.setOnAction(event -> createWorker());
         btnDeleteW.setOnAction(event -> deleteWorker());
 
+        btnDeleteA.setOnAction(event -> deleteAssignment());
+        btnConfirmA.setOnAction(event -> confirmAssignments());
+
+        dragAndDropAssignmentConf();
+    }
+
+    private void confirmAssignments() {
+        errorAssignment = false;
+        for (Task task : lvAssignments.getItems()) {
+            String filter = "/asignar/" + task.getIdTrabajador();
+            UpdateTaskService updateTaskService = new UpdateTaskService(task, filter);
+
+            // Configurar manejadores de éxito y fallo
+            updateTaskService.setOnSucceeded(e -> {
+                if (!(updateTaskService.getValue().getStatus() >= 200 && updateTaskService.getValue().getStatus() < 300)) {
+                    errorAssignment = true;
+                }
+            });
+
+            updateTaskService.setOnFailed(e -> {
+                errorAssignment = true;
+            });
+
+            // Iniciar el servicio
+            updateTaskService.start();
+        }
+
+        if (errorAssignment) {
+            MessageUtils.showError("Error Assigning", "An error occurred while assigning tasks");
+        }
+
+        // Limpiar la lista de asignaciones después de confirmar
+        lvAssignments.getItems().clear();
+    }
+
+    private void dragAndDropAssignmentConf(){
+        // Set up drag and drop for tasks
+        lvTasksA.setCellFactory(lv -> {
+            ListCell<Task> cell = new ListCell<>() {
+                @Override
+                protected void updateItem(Task item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty ? null : item.toString());
+                }
+            };
+
+            cell.setOnDragDetected(event -> {
+                if (!cell.isEmpty()) {
+                    Dragboard db = cell.startDragAndDrop(TransferMode.MOVE);
+                    ClipboardContent content = new ClipboardContent();
+                    content.putString(cell.getItem().getCodTrabajo());
+                    db.setContent(content);
+                    event.consume();
+                }
+            });
+
+            return cell;
+        });
+
+        // Set up drag and drop for workers
+        lvWorkersA.setCellFactory(lv -> {
+            ListCell<Worker> cell = new ListCell<>() {
+                @Override
+                protected void updateItem(Worker item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty ? null : item.toString());
+                }
+            };
+
+            cell.setOnDragOver(event -> {
+                if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
+                    event.acceptTransferModes(TransferMode.MOVE);
+                }
+                event.consume();
+            });
+
+            cell.setOnDragDropped(event -> {
+                boolean success = false;
+                Dragboard db = event.getDragboard();
+                if (db.hasString()) {
+                    String taskCod = db.getString();
+                    Worker worker = cell.getItem();
+
+                    Task taskToAssign = lvTasksA.getItems().stream()
+                            .filter(task -> task.getCodTrabajo().equals(taskCod))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (taskToAssign != null &&
+                            equalsIgnoreCaseAndAccents(taskToAssign.getCategoria(), cell.getItem().getEspecialidad())) {
+                        taskToAssign.setIdTrabajador(worker.getIdTrabajador());
+                        lvAssignments.getItems().add(taskToAssign);
+                        lvTasksA.getItems().remove(taskToAssign);
+                        success = true;
+                    } else {
+                        MessageUtils.showError("Error assigning task", "The task category must be related to worker specialization");
+                    }
+                }
+                event.setDropCompleted(success);
+                event.consume();
+            });
+
+            return cell;
+        });
+    }
+
+    private void deleteAssignment() {
+        Task selectedItem = lvAssignments.getSelectionModel().getSelectedItem();
+        if (selectedItem != null) {
+            lvAssignments.getItems().remove(selectedItem);
+            selectedItem.setIdTrabajador(null);
+            lvTasksA.getItems().add(selectedItem);
+        }
     }
 
     private void handleTabChange(Tab newTab) {
@@ -171,6 +292,7 @@ public class HelloController implements Initializable {
                 // Lógica para cuando se selecciona la pestaña "Task Assignment"
                 assignmentTaskList();
                 assignmentWorkersList();
+                lvAssignments.getItems().clear();
                 break;
         }
     }
@@ -694,6 +816,26 @@ public class HelloController implements Initializable {
             rbAll.setSelected(false);
             rbUnassigned.setSelected(false);
         }
+    }
+
+    public static boolean equalsIgnoreCaseAndAccents(String str1, String str2) {
+        if (str1 == null || str2 == null) {
+            return str1 == str2;
+        }
+
+        String normalizedStr1 = normalizeString(str1);
+        String normalizedStr2 = normalizeString(str2);
+
+        Collator collator = Collator.getInstance(Locale.getDefault());
+        collator.setStrength(Collator.PRIMARY);
+
+        return collator.equals(normalizedStr1, normalizedStr2);
+    }
+
+    private static String normalizeString(String str) {
+        return Normalizer.normalize(str, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase();
     }
 }
 
