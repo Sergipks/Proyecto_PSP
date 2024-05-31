@@ -7,10 +7,10 @@ import com.google.gson.Gson;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
-public class PostWorkerService extends Service<GetWorkerResponse> {
+public class UpdateWorkerService extends Service<GetWorkerResponse> {
     Worker worker;
 
-    public PostWorkerService(Worker worker)
+    public UpdateWorkerService(Worker worker)
     {
         this.worker = worker;
     }
@@ -23,7 +23,7 @@ public class PostWorkerService extends Service<GetWorkerResponse> {
                 Gson gson = new Gson();
 
                 String json = ServiceUtils.getResponse(
-                        ServiceUtils.SERVER + "/trabajadores", gson.toJson(worker), "POST");
+                        ServiceUtils.SERVER + "/trabajadores/" +worker.getIdTrabajador(), gson.toJson(worker), "PUT");
 
                 GetWorkerResponse response = gson.fromJson(json, GetWorkerResponse.class);
                 return response;
