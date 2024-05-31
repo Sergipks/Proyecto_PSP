@@ -460,7 +460,7 @@ public class HelloController implements Initializable {
                 Task task;
                 String filter = "";
                 if (trabajador != null) {
-                    task = new Task(cod, categoria.getDisplayName(), descripcion, prioridad, trabajador.getIdTrabajador());
+                    task = new Task(cod, categoria.getDisplayName(), descripcion, prioridad, null);
                     filter = "/trabajador/" + trabajador.getIdTrabajador() + "/crear-trabajo";
                 }
                 else {
@@ -616,7 +616,7 @@ public class HelloController implements Initializable {
                 return false;
             }
         }
-        if(Integer.parseInt(str) < 0 || Integer.parseInt(str) > 3){
+        if(Integer.parseInt(str) < 1 || Integer.parseInt(str) > 4){
             return false;
         }
 
