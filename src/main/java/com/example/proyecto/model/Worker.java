@@ -6,17 +6,17 @@ public class Worker {
     private String nombre;
     private String apellidos;
     private String especialidad;
-    private String contrasenya;
+    private String contraseña;
     private String email;
 
     public Worker(String id, String dni, String nombre, String apellidos,
-                  String especialidad, String contrasenya, String email) {
+                  String especialidad, String contraseña, String email) {
         this.idTrabajador = id;
         this.dni = dni;
         this.nombre = nombre;
         this.apellidos = apellidos;
         this.especialidad = especialidad;
-        this.contrasenya = contrasenya;
+        this.contraseña = contraseña;
         this.email = email;
     }
 
@@ -60,12 +60,12 @@ public class Worker {
         this.especialidad = especialidad;
     }
 
-    public String getContrasenya() {
-        return contrasenya;
+    public String getContraseña() {
+        return contraseña;
     }
 
-    public void setContrasenya(String contrasenya) {
-        this.contrasenya = contrasenya;
+    public void setContraseña(String contrasenya) {
+        this.contraseña = contraseña;
     }
 
     public String getEmail() {

@@ -3,6 +3,7 @@ package com.example.proyecto;
 import com.example.proyecto.model.Task;
 import com.example.proyecto.model.Worker;
 import com.example.proyecto.response.BaseResponse;
+import com.example.proyecto.response.GetWorkerResponse;
 import com.example.proyecto.service.*;
 import com.example.proyecto.utils.MessageUtils;
 import javafx.collections.FXCollections;
@@ -160,6 +161,7 @@ public class HelloController implements Initializable {
 
         btnCreateW.setOnAction(event -> createWorker());
         btnDeleteW.setOnAction(event -> deleteWorker());
+        btnUpdateW.setOnAction(event -> updateWorker());
 
         btnDeleteA.setOnAction(event -> deleteAssignment());
         btnConfirmA.setOnAction(event -> confirmAssignments());
@@ -286,7 +288,7 @@ public class HelloController implements Initializable {
                 break;
             case "Workers management":
                 // Lógica para cuando se selecciona la pestaña "Workers management"
-
+                updateWorkerList();
                 break;
             case "Task Assignment":
                 // Lógica para cuando se selecciona la pestaña "Task Assignment"
@@ -318,6 +320,7 @@ public class HelloController implements Initializable {
 
     private void assignmentWorkersList(){
         workerFilter = "";
+        cbJobs.getItems().clear();
         cbJobs.getItems().addAll(Categoria.values()); // Cargar valores del enum
         cbJobs.setValue(null); // Valor por defecto
 
@@ -703,26 +706,31 @@ public class HelloController implements Initializable {
         gridPane.setVgap(10);
 
         // Inicializar los campos del formulario
+        TextField idTrabajadorField = new TextField();
         TextField dniField = new TextField();
         TextField nombreField = new TextField();
         TextField apellidosField = new TextField();
-        TextField especialidadField = new TextField();
+        ChoiceBox<String> especialidadChoiceBox = new ChoiceBox<>();
+        especialidadChoiceBox.getItems().addAll("Limpieza", "Carpinteria", "Fontaneria", "Electricidad");
+        especialidadChoiceBox.setValue("Limpieza");
         PasswordField contrasenyaField = new PasswordField();
         TextField emailField = new TextField();
 
         // Agregar los campos al diseño
-        gridPane.add(new Label("DNI:"), 0, 0);
-        gridPane.add(dniField, 1, 0);
-        gridPane.add(new Label("Nombre:"), 0, 1);
-        gridPane.add(nombreField, 1, 1);
-        gridPane.add(new Label("Apellidos:"), 0, 2);
-        gridPane.add(apellidosField, 1, 2);
-        gridPane.add(new Label("Especialidad:"), 0, 3);
-        gridPane.add(especialidadField, 1, 3);
-        gridPane.add(new Label("Contraseña:"), 0, 4);
-        gridPane.add(contrasenyaField, 1, 4);
-        gridPane.add(new Label("Email:"), 0, 5);
-        gridPane.add(emailField, 1, 5);
+        gridPane.add(new Label("ID:"), 0, 0);
+        gridPane.add(idTrabajadorField, 1, 0);
+        gridPane.add(new Label("DNI:"), 0, 1);
+        gridPane.add(dniField, 1, 1);
+        gridPane.add(new Label("Nombre:"), 0, 2);
+        gridPane.add(nombreField, 1, 2);
+        gridPane.add(new Label("Apellidos:"), 0, 3);
+        gridPane.add(apellidosField, 1, 3);
+        gridPane.add(new Label("Especialidad:"), 0, 4);
+        gridPane.add(especialidadChoiceBox, 1, 4);
+        gridPane.add(new Label("Contraseña:"), 0, 5);
+        gridPane.add(contrasenyaField, 1, 5);
+        gridPane.add(new Label("Email:"), 0, 6);
+        gridPane.add(emailField, 1, 6);
 
         // Crear el diálogo
         Dialog<ButtonType> dialog = new Dialog<>();
@@ -737,43 +745,181 @@ public class HelloController implements Initializable {
         Node createButton = dialog.getDialogPane().lookupButton(createButtonType);
         createButton.setDisable(true);
 
-        /*
         // Validar el formulario
-        dniField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
-        nombreField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
-        apellidosField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
-        especialidadField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
-        contrasenyaField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
-        emailField.textProperty().addListener((observable, oldValue, newValue) -> validateFields(createButton));
-        */
+        dniField.textProperty().addListener((observable, oldValue, newValue) -> validateCreateFieldsWorker(createButton, idTrabajadorField, dniField, nombreField, apellidosField, especialidadChoiceBox, contrasenyaField, emailField));
+        nombreField.textProperty().addListener((observable, oldValue, newValue) -> validateCreateFieldsWorker(createButton, idTrabajadorField, dniField, nombreField, apellidosField, especialidadChoiceBox, contrasenyaField, emailField));
+        apellidosField.textProperty().addListener((observable, oldValue, newValue) -> validateCreateFieldsWorker(createButton, idTrabajadorField, dniField, nombreField, apellidosField, especialidadChoiceBox, contrasenyaField, emailField));
+        especialidadChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> validateCreateFieldsWorker(createButton, idTrabajadorField, dniField, nombreField, apellidosField, especialidadChoiceBox, contrasenyaField, emailField));
+        contrasenyaField.textProperty().addListener((observable, oldValue, newValue) -> validateCreateFieldsWorker(createButton, idTrabajadorField, dniField, nombreField, apellidosField, especialidadChoiceBox, contrasenyaField, emailField));
+        emailField.textProperty().addListener((observable, oldValue, newValue) -> validateCreateFieldsWorker(createButton, idTrabajadorField, dniField, nombreField, apellidosField, especialidadChoiceBox, contrasenyaField, emailField));
 
         // Mostrar el diálogo y esperar a que el usuario interactúe
         dialog.showAndWait().ifPresent(response -> {
             if (response.getButtonData() == ButtonType.OK.getButtonData()) {
                 // Obtener los valores del formulario y crear el trabajador
+                String idTrabajador = idTrabajadorField.getText();
                 String dni = dniField.getText();
                 String nombre = nombreField.getText();
                 String apellidos = apellidosField.getText();
-                String especialidad = especialidadField.getText();
-                String contrasenya = contrasenyaField.getText();
+                String especialidad = especialidadChoiceBox.getValue();
+                String contraseña = contrasenyaField.getText();
                 String email = emailField.getText();
 
-                //Llamas al servicio para crear el trabajador con los datos ingresados
+                Worker nuevoTrabajador = new Worker(idTrabajador, dni, nombre, apellidos, especialidad, contraseña, email);
 
-                //Imprimimos los datos del nuevo trabajador
-                Worker nuevoTrabajador = new Worker("", dni, nombre, apellidos, especialidad, contrasenya, email);
-                System.out.println("Trabajador creado: " + nuevoTrabajador);
+                // Llamar al servicio para crear el trabajador con los datos ingresados
+                PostWorkerService postWorkerService = new PostWorkerService(nuevoTrabajador);
+                postWorkerService.setOnSucceeded(e -> {
+                    GetWorkerResponse postResponse = postWorkerService.getValue();
+                    if (postResponse.getStatus() >= 200 && postResponse.getStatus() < 300) {
+                        MessageUtils.showMessage("Trabajador Creado", "Trabajador creado exitosamente");
+                        // Aquí puedes actualizar la lista de trabajadores si es necesario
+                        updateWorkerList();
+                    } else {
+                        MessageUtils.showError("Error creando trabajador", postResponse.getMessage());
+                    }
+                });
+                postWorkerService.setOnFailed(e -> {
+                    MessageUtils.showError("Error", "Error al conectar con el servidor");
+                });
 
-                // Limpia los campos
+                postWorkerService.start();
+
+                // Limpiar los campos
+                idTrabajadorField.clear();
                 dniField.clear();
                 nombreField.clear();
                 apellidosField.clear();
-                especialidadField.clear();
+                especialidadChoiceBox.setValue("LIMPIEZA");
                 contrasenyaField.clear();
                 emailField.clear();
             }
         });
     }
+
+    // Función para validar los campos del formulario
+    private void validateCreateFieldsWorker(Node createButton, TextField idTrabajadorField, TextField dniField, TextField nombreField, TextField apellidosField, ChoiceBox<String> especialidadChoiceBox, PasswordField contrasenyaField, TextField emailField) {
+        boolean isValid = !idTrabajadorField.getText().isEmpty() &&
+                !dniField.getText().isEmpty() &&
+                !nombreField.getText().isEmpty() &&
+                !apellidosField.getText().isEmpty() &&
+                especialidadChoiceBox.getValue() != null &&
+                !contrasenyaField.getText().isEmpty() &&
+                !emailField.getText().isEmpty();
+        createButton.setDisable(!isValid);
+    }
+
+    private void updateWorker() {
+        // Obtener el índice del trabajador seleccionado en lvTaskMg
+        int selectedIndex = lvWorkersMg.getSelectionModel().getSelectedIndex();
+
+        // Verificar si hay algún trabajador seleccionado
+        if (selectedIndex != -1) {
+            // Obtener el trabajador seleccionado
+            Worker selectedWorker = lvWorkersMg.getItems().get(selectedIndex);
+
+            // Crear el diseño del formulario
+            GridPane gridPane = new GridPane();
+            gridPane.setPadding(new Insets(20));
+            gridPane.setHgap(10);
+            gridPane.setVgap(10);
+
+            // Inicializar los campos del formulario con los datos del trabajador a actualizar
+            Label idTrabajadorLabel = new Label(selectedWorker.getIdTrabajador());
+            TextField dniField = new TextField(selectedWorker.getDni());
+            TextField nombreField = new TextField(selectedWorker.getNombre());
+            TextField apellidosField = new TextField(selectedWorker.getApellidos());
+            ChoiceBox<String> especialidadChoiceBox = new ChoiceBox<>();
+            especialidadChoiceBox.getItems().addAll("Limpieza", "Carpinteria", "Fontaneria", "Electricidad");
+            especialidadChoiceBox.setValue(selectedWorker.getEspecialidad());
+            PasswordField contrasenyaField = new PasswordField();
+            TextField emailField = new TextField(selectedWorker.getEmail());
+
+            // Agregar los campos al diseño
+            gridPane.add(new Label("ID:"), 0, 0);
+            gridPane.add(idTrabajadorLabel, 1, 0);
+            gridPane.add(new Label("DNI:"), 0, 1);
+            gridPane.add(dniField, 1, 1);
+            gridPane.add(new Label("Nombre:"), 0, 2);
+            gridPane.add(nombreField, 1, 2);
+            gridPane.add(new Label("Apellidos:"), 0, 3);
+            gridPane.add(apellidosField, 1, 3);
+            gridPane.add(new Label("Especialidad:"), 0, 4);
+            gridPane.add(especialidadChoiceBox, 1, 4);
+            gridPane.add(new Label("Contraseña:"), 0, 5);
+            gridPane.add(contrasenyaField, 1, 5);
+            gridPane.add(new Label("Email:"), 0, 6);
+            gridPane.add(emailField, 1, 6);
+
+            // Crear el diálogo
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Actualizar Trabajador");
+            dialog.getDialogPane().setContent(gridPane);
+
+            // Agregar botones al diálogo
+            ButtonType updateButtonType = new ButtonType("Actualizar", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
+
+            // Habilitar el botón de actualizar cuando el formulario es válido
+            Node updateButton = dialog.getDialogPane().lookupButton(updateButtonType);
+            updateButton.setDisable(true);
+
+            // Validar el formulario
+            dniField.textProperty().addListener((observable, oldValue, newValue) -> validateUpdateFieldsWorker(updateButton, idTrabajadorLabel, dniField, nombreField, apellidosField, especialidadChoiceBox, contrasenyaField, emailField));
+            nombreField.textProperty().addListener((observable, oldValue, newValue) -> validateUpdateFieldsWorker(updateButton, idTrabajadorLabel, dniField, nombreField, apellidosField, especialidadChoiceBox, contrasenyaField, emailField));
+            apellidosField.textProperty().addListener((observable, oldValue, newValue) -> validateUpdateFieldsWorker(updateButton, idTrabajadorLabel, dniField, nombreField, apellidosField, especialidadChoiceBox, contrasenyaField, emailField));
+            especialidadChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> validateUpdateFieldsWorker(updateButton, idTrabajadorLabel, dniField, nombreField, apellidosField, especialidadChoiceBox, contrasenyaField, emailField));
+            contrasenyaField.textProperty().addListener((observable, oldValue, newValue) -> validateUpdateFieldsWorker(updateButton, idTrabajadorLabel, dniField, nombreField, apellidosField, especialidadChoiceBox, contrasenyaField, emailField));
+            emailField.textProperty().addListener((observable, oldValue, newValue) -> validateUpdateFieldsWorker(updateButton, idTrabajadorLabel, dniField, nombreField, apellidosField, especialidadChoiceBox, contrasenyaField, emailField));
+
+            // Mostrar el diálogo y esperar a que el usuario interactúe
+            dialog.showAndWait().ifPresent(response -> {
+                if (response.getButtonData() == ButtonType.OK.getButtonData()) {
+                    // Obtener los valores del formulario y actualizar el trabajador
+                    selectedWorker.setDni(dniField.getText());
+                    selectedWorker.setNombre(nombreField.getText());
+                    selectedWorker.setApellidos(apellidosField.getText());
+                    selectedWorker.setEspecialidad(especialidadChoiceBox.getValue());
+                    selectedWorker.setContraseña(contrasenyaField.getText());
+                    selectedWorker.setEmail(emailField.getText());
+
+                    // Llamar al servicio para actualizar el trabajador con los datos ingresados
+                    UpdateWorkerService updateWorkerService = new UpdateWorkerService(selectedWorker);
+                    updateWorkerService.setOnSucceeded(e -> {
+                        GetWorkerResponse updateResponse = updateWorkerService.getValue();
+                        if (updateResponse.getStatus() >= 200 && updateResponse.getStatus() < 300) {
+                            MessageUtils.showMessage("Trabajador Actualizado", "Trabajador actualizado exitosamente");
+                            // Aquí puedes actualizar la lista de trabajadores si es necesario
+                            updateWorkerList();
+                        } else {
+                            MessageUtils.showError("Error actualizando trabajador", updateResponse.getMessage());
+                        }
+                    });
+                    updateWorkerService.setOnFailed(e -> {
+                        MessageUtils.showError("Error", "Error al conectar con el servidor");
+                    });
+
+                    updateWorkerService.start();
+                }
+            });
+        }
+    }
+
+    private void validateUpdateFieldsWorker(Node updateButton, Label idTrabajadorLabel, TextField dniField, TextField nombreField, TextField apellidosField, ChoiceBox<String> especialidadChoiceBox, PasswordField contrasenyaField, TextField emailField) {
+        boolean isDniValid = !dniField.getText().isEmpty();
+        boolean isNombreValid = !nombreField.getText().isEmpty();
+        boolean isApellidosValid = !apellidosField.getText().isEmpty();
+        boolean isEspecialidadValid = especialidadChoiceBox.getValue() != null;
+        boolean isContrasenyaValid = !contrasenyaField.getText().isEmpty();
+        boolean isEmailValid = !emailField.getText().isEmpty();
+
+        boolean isFormValid = isDniValid && isNombreValid && isApellidosValid && isEspecialidadValid && isContrasenyaValid && isEmailValid;
+
+        // Habilitar el botón de actualizar si el formulario es válido y el ID del trabajador no está vacío
+        updateButton.setDisable(!isFormValid || idTrabajadorLabel.getText().isEmpty());
+    }
+
+
 
     private void deleteWorker() {
         int selectedIndex = lvWorkersMg.getSelectionModel().getSelectedIndex();
@@ -793,7 +939,7 @@ public class HelloController implements Initializable {
                         MessageUtils.showError("Error deleting the worker", response.getMessage());
                     }
                 } else {
-                    MessageUtils.showError("Error", "Null response received from server");
+                    MessageUtils.showError("Error", "No se puede eliminar un trabajador con trabajo asignado");
                 }
             });
 
